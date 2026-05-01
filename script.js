@@ -1,478 +1,247 @@
-// Typing animation
-const texts = ['Web Developer', 'UI/UX Designer', 'Cybersecurity Expert'];
-let textIndex = 0;
-let charIndex = 0;
-let isDeleting = false;
+// TEWA Education Consultancy - Main JavaScript
+let index = 0;
+const slider = document.getElementById("slider");
+const totalSlides = slider.children.length;
 
-// Function to update hero section content
-function updateHeroContent(command) {
-    const heroLeft = document.querySelector('.hero-left');
-    const heroRight = document.querySelector('.hero-right');
-    
-    switch(command) {
-        case 'dark':
-            document.body.style.backgroundColor = '#1a1a1a';
-            heroLeft.style.color = '#ffffff';
-            heroRight.style.color = '#ffffff';
-            break;
-            
-        case 'light':
-            document.body.style.backgroundColor = '#ffffff';
-            heroLeft.style.color = '#333333';
-            heroRight.style.color = '#333333';
-            break;
-            
-        case 'gradient':
-            document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-            heroLeft.style.color = '#ffffff';
-            heroRight.style.color = '#ffffff';
-            break;
-            
-        case 'reset':
-            document.body.style.backgroundColor = '';
-            document.body.style.background = '';
-            heroLeft.style.color = '';
-            heroRight.style.color = '';
-            break;
-            
-        default:
-            console.log('Invalid command');
-    }
+function moveSlide(step) {
+    index += step;
+
+    if (index < 0) index = 0;
+    if (index > totalSlides - 1) index = totalSlides - 1;
+
+    slider.style.transform = "translateX(" + (-index * 320) + "px)";
 }
 
-// Add command listener
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === '/') {
-        const command = prompt('Enter command (dark/light/gradient/reset):');
-        if (command) {
-            updateHeroContent(command.toLowerCase());
-        }
-    }
+/* Auto Slide */
+let auto = setInterval(() => {
+    index++;
+    if (index > totalSlides - 3) index = 0;
+    slider.style.transform = "translateX(" + (-index * 320) + "px)";
+}, 3000);
+
+/* Pause on Hover */
+const container = document.getElementById("sliderContainer");
+
+container.addEventListener("mouseenter", () => {
+    clearInterval(auto);
 });
 
-function type() {
-    const typedTextSpan = document.querySelector('.typed-text');
-    if (!typedTextSpan) return;
-    
-    const currentText = texts[textIndex];
-    
-    if (isDeleting) {
-        typedTextSpan.textContent = currentText.substring(0, charIndex - 1);
-        charIndex--;
-    } else {
-        typedTextSpan.textContent = currentText.substring(0, charIndex + 1);
-        charIndex++;
-    }
+container.addEventListener("mouseleave", () => {
+    auto = setInterval(() => {
+        index++;
+        if (index > totalSlides - 3) index = 0;
+        slider.style.transform = "translateX(" + (-index * 320) + "px)";
+    }, 3000);
+});
+// ==========================================
+// Intake Selection Functions
+// ==========================================
 
-    if (!isDeleting && charIndex === currentText.length) {
-        isDeleting = true;
-        setTimeout(type, 2000);
-    } else if (isDeleting && charIndex === 0) {
-        isDeleting = false;
-        textIndex = (textIndex + 1) % texts.length;
-        setTimeout(type, 500);
-    } else {
-        setTimeout(type, isDeleting ? 100 : 200);
-    }
+function selectIntake(type) {
+  scrollToForm(type);
 }
 
-// Mobile Menu Functionality
-let menuBtn, navLinks;
-const body = document.body;
-
-function closeMenu() {
-    if (!menuBtn || !navLinks) return;
-    menuBtn.classList.remove('active');
-    navLinks.classList.remove('active');
-    body.classList.remove('menu-open');
-    menuBtn.setAttribute('aria-expanded', 'false');
-    // Fallback to ensure menu hides even if CSS conflicts
-    navLinks.style.right = '';
-    navLinks.style.display = '';
+function scrollToForm(type) {
+  document.getElementById("apply").scrollIntoView({ behavior: "smooth" });
+  setTimeout(() => {
+    selectFormIntake(type);
+  }, 500);
 }
 
-function openMenu() {
-    if (!menuBtn || !navLinks) return;
-    menuBtn.classList.add('active');
-    navLinks.classList.add('active');
-    body.classList.add('menu-open');
-    menuBtn.setAttribute('aria-expanded', 'true');
-    // Fallback to ensure menu shows on all devices
-    navLinks.style.display = 'flex';
-    navLinks.style.right = '0';
+function selectFormIntake(type) {
+  const aprilOption = document.getElementById("aprilOption");
+  const octoberOption = document.getElementById("octoberOption");
+  const hiddenInput = document.getElementById("selectedIntake");
+
+  if (type === "april") {
+    aprilOption.classList.add("selected");
+    aprilOption.classList.remove("october-option");
+    octoberOption.classList.remove("selected");
+    hiddenInput.value = "April 2026";
+  } else {
+    octoberOption.classList.add("selected");
+    aprilOption.classList.remove("selected");
+    hiddenInput.value = "October 2026";
+  }
 }
 
-function initMenu() {
-    menuBtn = document.querySelector('.menu-btn');
-    navLinks = document.querySelector('.nav-links');
-    
-    if (!menuBtn || !navLinks) return;
-    
-    menuBtn.addEventListener('click', () => {
-        if (navLinks.classList.contains('active')) {
-            closeMenu();
-        } else {
-            openMenu();
-        }
-    });
+// ==========================================
+// Form Submission Handler
+// ==========================================
 
-    // Keyboard support for menu button
-    menuBtn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            if (navLinks.classList.contains('active')) {
-                closeMenu();
-            } else {
-                openMenu();
-            }
-        }
-    });
+async function handleSubmit(e) {
+  e.preventDefault();
 
-    // Touch support for Android
-    menuBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (navLinks.classList.contains('active')) {
-            closeMenu();
-        } else {
-            openMenu();
-        }
-    }, { passive: false });
-    
-    // Close menu when clicking a link
-    const navLinkEls = document.querySelectorAll('.nav-links a');
-    navLinkEls.forEach(link => {
-        link.addEventListener('click', () => {
-            closeMenu();
+  const btn = document.getElementById("submitBtn");
+  const status = document.getElementById("formStatus");
+  const form = e.target;
+
+  btn.classList.add("loading");
+  btn.disabled = true;
+  status.style.display = "none";
+
+  const formData = new FormData(form);
+  const data = {
+    timestamp: new Date().toISOString(),
+    fullName: formData.get("fullName"),
+    phone: formData.get("phone"),
+    email: formData.get("email"),
+    age: formData.get("age"),
+    intake: formData.get("intake"),
+    interest: formData.get("interest"),
+    education: formData.get("education"),
+    message: formData.get("message"),
+    source: "TEWA Website",
+    status: "New Lead",
+  };
+
+  try {
+    // Google Apps Script Integration
+    // IMPORTANT: Replace with your actual Google Apps Script URL
+    const GOOGLE_SCRIPT_URL =
+      "https://script.google.com/macros/s/AKfycbxKXlvKka663EcgpGKLaC4SvVcIqqwJoBot1_xb7A6qi3ioV_tREYTLjElICOrysLcj/exec";
+
+    // Simulate API call (remove this when connecting to real endpoint)
+    // await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Uncomment below to send data to Google Sheets
+    /*
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
         });
-        link.addEventListener('touchstart', () => {
-            closeMenu();
-        }, { passive: true });
+        */
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      mode: "no-cors",
+      body: JSON.stringify(data),
     });
+
+    status.innerHTML = `
+            <strong>✅ Application Submitted!</strong><br>
+            Thank you ${data.fullName} for applying for ${data.intake}.<br>
+            Our team will contact you within 24 hours.
+        `;
+    status.className = "form-status success";
+    status.style.display = "block";
+
+    form.reset();
+    selectFormIntake("april");
+  } catch (error) {
+    status.innerHTML = `
+            <strong>❌ Error submitting form.</strong><br>
+            Please call us directly at +977-9767474000
+        `;
+    status.className = "form-status error";
+    status.style.display = "block";
+  } finally {
+    btn.classList.remove("loading");
+    btn.disabled = false;
+  }
 }
 
-// Close menu when clicking outside
-function handleOutsideClick(e) {
-    if (menuBtn && navLinks && !menuBtn.contains(e.target) && !navLinks.contains(e.target) && navLinks.classList.contains('active')) {
-        closeMenu();
-    }
-}
-document.addEventListener('click', handleOutsideClick);
-document.addEventListener('touchstart', handleOutsideClick, { passive: true });
+// ==========================================
+// Mobile Menu Toggle
+// ==========================================
 
-// Handle window resize
-window.addEventListener('resize', () => {
-    if (window.innerWidth > 768 && menuBtn && navLinks) {
-        menuBtn.classList.remove('active');
-        navLinks.classList.remove('active');
-        body.classList.remove('menu-open');
-        navLinks.style.right = '';
-        navLinks.style.display = '';
-    }
-});
+function toggleMobileMenu() {
+  const navLinks = document.querySelector(".nav-links");
+  const navContact = document.querySelector(".nav-contact-info");
+  const isOpen = navLinks.style.display === "flex";
 
-// Smooth scrolling for navigation links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-            // Close mobile menu after clicking
-            menuBtn.classList.remove('active');
-            navLinks.classList.remove('active');
-        }
-    });
-});
+  if (isOpen) {
+    navLinks.style.display = "none";
+    navContact.style.display = "none";
+  } else {
+    navContact.style.display = "flex";
+    navContact.style.flexDirection = "column";
+    navContact.style.position = "absolute";
+    navContact.style.top = "100%";
+    navContact.style.left = "0";
+    navContact.style.right = "0";
+    navContact.style.background = "white";
+    navContact.style.padding = "20px";
+    navContact.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
+    navContact.style.gap = "15px";
 
-// Portfolio filtering
-const filterButtons = document.querySelectorAll('.filter-btn');
-const portfolioItems = document.querySelectorAll('.portfolio-box');
-
-filterButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        // Remove active class from all buttons
-        filterButtons.forEach(btn => btn.classList.remove('active'));
-        // Add active class to clicked button
-        button.classList.add('active');
-
-        const filterValue = button.getAttribute('data-filter');
-
-        portfolioItems.forEach(item => {
-            if (filterValue === 'all' || item.getAttribute('data-category') === filterValue) {
-                item.style.display = 'block';
-                setTimeout(() => {
-                    item.style.opacity = '1';
-                    item.style.transform = 'scale(1)';
-                }, 100);
-            } else {
-                item.style.opacity = '0';
-                item.style.transform = 'scale(0.8)';
-                setTimeout(() => {
-                    item.style.display = 'none';
-                }, 300);
-            }
-        });
-    });
-});
-
-// Active link highlighting on scroll
-const sections = document.querySelectorAll('section[id]');
-const navAnchors = document.querySelectorAll('.nav-links a');
-
-const sectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        const id = entry.target.getAttribute('id');
-        const link = document.querySelector(`.nav-links a[href="#${id}"]`);
-        if (!link) return;
-        if (entry.isIntersecting) {
-            navAnchors.forEach(a => a.classList.remove('active'));
-            link.classList.add('active');
-            link.setAttribute('aria-current', 'page');
-        } else if (link.classList.contains('active')) {
-            link.classList.remove('active');
-            link.removeAttribute('aria-current');
-        }
-    });
-}, { root: null, threshold: 0.6 });
-
-sections.forEach(sec => sectionObserver.observe(sec));
-
-// Form submission - removed duplicate handler (handled in handleResponsiveForm)
-
-// Removed manual scroll animation handler in favor of IntersectionObserver below
-
-// 3D tilt effect for cards
-document.querySelectorAll('.service-card, .portfolio-box, .skill').forEach(card => {
-    card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        
-        const rotateX = (y - centerY) / 10;
-        const rotateY = (centerX - x) / 10;
-        
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
-    });
-    
-    card.addEventListener('mouseleave', () => {
-        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
-    });
-});
-
-// Disable hover effects on touch devices
-function updateTouchStatus() {
-    if ('ontouchstart' in window) {
-        document.body.classList.add('touch-device');
-    }
+    navLinks.style.display = "flex";
+    navLinks.style.flexDirection = "column";
+    navLinks.style.width = "100%";
+  }
 }
 
-// Call on page load
-updateTouchStatus();
+// ==========================================
+// Smooth Scroll for Navigation Links
+// ==========================================
 
-// Add scroll-based animations for sections
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('animate');
-        }
-    });
-}, { threshold: 0.1 });
-
-document.querySelectorAll('section').forEach((section) => {
-    observer.observe(section);
-});
-
-// Add floating label effect
-document.querySelectorAll('#contact-form input, #contact-form textarea').forEach(field => {
-    field.addEventListener('focus', () => {
-        field.parentElement.classList.add('focused');
-    });
-    
-    field.addEventListener('blur', () => {
-        if (!field.value) {
-            field.parentElement.classList.remove('focused');
-        }
-    });
-});
-
-// Enhanced Responsive Navigation
-const handleResponsiveNav = () => {
-    const nav = document.querySelector('nav');
-    if (!nav) return;
-    
-    let lastScroll = 0;
-
-    // Handle scroll events (passive)
-    window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset;
-
-        // Add scrolled class for background change
-        if (currentScroll > 50) {
-            nav.classList.add('scrolled');
-        } else {
-            nav.classList.remove('scrolled');
-        }
-
-        // Hide/show nav on scroll
-        if (currentScroll > lastScroll && currentScroll > 100) {
-            nav.style.transform = 'translateY(-100%)';
-        } else {
-            nav.style.transform = 'translateY(0)';
-        }
-        lastScroll = currentScroll;
-    }, { passive: true });
-
-    // Handle window resize for menu
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            if (window.innerWidth > 768 && menuBtn && navLinks) {
-                menuBtn.classList.remove('active');
-                navLinks.classList.remove('active');
-                body.classList.remove('menu-open');
-            }
-        }, 250);
-    });
-};
-
-// Enhanced Responsive Images
-const handleResponsiveImages = () => {
-    const images = document.querySelectorAll('img');
-    images.forEach(img => {
-        // Only set lazy if not explicitly prioritized
-        if (!img.hasAttribute('loading')) {
-            img.loading = 'lazy';
-        }
-        // Add error handling
-        img.onerror = function() {
-            this.src = 'placeholder.png';
-            this.alt = 'Image failed to load';
-        };
-    });
-};
-
-// Enhanced Touch Device Support
-const handleTouchDevices = () => {
-    if ('ontouchstart' in window) {
-        document.body.classList.add('touch-device');
-        
-        // Remove hover effects on touch devices
-        const elements = document.querySelectorAll('.service-card, .portfolio-box, .skill');
-        elements.forEach(element => {
-            element.style.transform = 'none';
-        });
+document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+  anchor.addEventListener("click", function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute("href"));
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-};
-
-// Enhanced Scroll Animations
-const handleScrollAnimations = () => {
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate');
-                // Unobserve after animation
-                observer.unobserve(entry.target);
-            }
-        });
-    }, observerOptions);
-
-    // Observe all sections and animated elements
-    document.querySelectorAll('section, .animate-on-scroll').forEach((element) => {
-        observer.observe(element);
-    });
-};
-
-// Enhanced Form Handling
-const handleResponsiveForm = () => {
-    const form = document.getElementById('contact-form');
-    if (!form) return;
-    
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        // Check Cloudflare Turnstile if present
-        const turnstileResponse = document.querySelector('input[name="cf-turnstile-response"]');
-        if (turnstileResponse && !turnstileResponse.value) {
-            alert('Please complete the security verification.');
-            return;
-        }
-        
-        // Get form values
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
-        
-        // Validate form
-        let isValid = true;
-        form.querySelectorAll('input[required], textarea[required]').forEach(field => {
-            if (!field.value.trim()) {
-                isValid = false;
-                field.classList.add('error');
-            } else {
-                field.classList.remove('error');
-            }
-        });
-
-        if (isValid) {
-            // Show loading state
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                const originalText = submitBtn.textContent;
-                submitBtn.textContent = 'Sending...';
-                submitBtn.disabled = true;
-
-                // Simulate form submission
-                setTimeout(() => {
-                    // Reset form (including Turnstile)
-                    form.reset();
-                    // Reset Turnstile widget if present
-                    if (typeof turnstile !== 'undefined' && turnstile.reset) {
-                        try {
-                            turnstile.reset();
-                        } catch (e) {
-                            // Fallback: try to remove the hidden input manually
-                            const turnstileInput = document.querySelector('input[name="cf-turnstile-response"]');
-                            if (turnstileInput) {
-                                turnstileInput.remove();
-                            }
-                        }
-                    }
-                    
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
-                    
-                    // Show success message
-                    alert('Thank you for your message! I will get back to you soon.');
-                }, 1500);
-            }
-        }
-    });
-};
-
-// Initialize all responsive features
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize menu functionality
-    initMenu();
-    
-    // Start typing animation
-    type();
-    
-    // Initialize other features
-    handleResponsiveNav();
-    handleResponsiveImages();
-    handleTouchDevices();
-    handleScrollAnimations();
-    handleResponsiveForm();
+  });
 });
+
+// ==========================================
+// Navbar Scroll Effect
+// ==========================================
+
+window.addEventListener("scroll", () => {
+  const nav = document.getElementById("navbar");
+  if (window.scrollY > 100) {
+    nav.style.boxShadow = "0 4px 30px rgba(0,0,0,0.15)";
+  } else {
+    nav.style.boxShadow = "0 2px 20px rgba(0,0,0,0.08)";
+  }
+});
+
+// ==========================================
+// Intersection Observer for Animations
+// ==========================================
+
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = "1";
+        entry.target.style.transform = "translateY(0)";
+      }
+    });
+  },
+  { threshold: 0.1 },
+);
+
+// Observe elements for scroll animations
+document
+  .querySelectorAll(
+    ".service-card, .testimonial-card, .feature-box, .intake-card-large",
+  )
+  .forEach((el) => {
+    el.style.opacity = "0";
+    el.style.transform = "translateY(30px)";
+    el.style.transition = "all 0.6s ease";
+    observer.observe(el);
+  });
+
+// ==========================================
+// Page Load Initialization
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("TEWA Education Consultancy Website Loaded Successfully");
+
+  // Initialize default intake selection
+  selectFormIntake("april");
+});
+
+
+
